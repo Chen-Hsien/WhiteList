@@ -67,6 +67,33 @@ verifyCalldata中三個參數分別如下, leaf其實就是mint用戶傳入的�
 | proof | bytes32[] | Merkle proof containing sibling hashes on the branch from the leaf to the root of the Merkle tree | 
 | root | bytes32 | Merkle root | 
 | leaf | bytes32 | Leaf of Merkle tree | 
+      
+接下來我們用JS搭配Solidity實作一個白名單出來吧     
+
+[`WhiteList-MerkleTree/merkletree.js`](merkletree.js).  
+這邊引用兩個函式庫keccak256, merkletreejs來實作。  
+whitelistAddresses[]中有前兩個是我個人測試用的錢包位址,後五個則是隨機生成地址, 還保留一個非白名單的個人測試地址來試試看能不能被阻擋mint吧～  
+1. 將whitelistAddresses map 為leafNodes
+2. new merkleTree帶入leafNodes
+就完成建立囉, 接著可以getRoot得到未來要存入smart contract 的root hash.  
+這邊就將整顆tree圖像畫出來看看是不是長得跟想像中一樣嚕。  
+
+![image](https://user-images.githubusercontent.com/24216536/197158555-d22d8fac-ec77-4823-9007-61f780ec801d.png)   
+可以看到總共為四層的結構, leaf nodes 確實同輸入的7個地址數量.   
+而未來在合約中就不需要leaf node的資料就可以進行驗證傳入的地址是否屬於merkle tree的一部分.  
+
+來驗證一下leaf中儲存的地址能不能正確的在tree中通過驗證 
+
+JS的部分就到這邊告一段落了   
+
+
+
+
+
+
+
+
+
 
 
 
