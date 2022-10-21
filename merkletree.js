@@ -13,7 +13,7 @@ let whitelistAddresses = [
 ]  
 
 const leafNodes = whitelistAddresses.map(addr => keccak256(addr));
-const merkleTree = new MerkleTree(leafNodes, keccak256, {sortPairs:true});
+const merkleTree = new MerkleTree(leafNodes, keccak256);
 
 const rootHash = merkleTree.getRoot();
 
