@@ -82,10 +82,56 @@ whitelistAddresses[]中有前兩個是我個人測試用的錢包位址,後五�
 可以看到總共為四層的結構, leaf nodes 確實同輸入的7個地址數量.   
 而未來在合約中就不需要leaf node的資料就可以進行驗證傳入的地址是否屬於merkle tree的一部分.  
 
-來驗證一下leaf中儲存的地址能不能正確的在tree中通過驗證 
-
+來驗證一下leaf中儲存的地址能不能正確的在tree中通過驗證, 可以正確分辨出白名單地址與非白名單地址.  
+```Javascript
+let leaf = keccak256('0x7d566a978b786175B70F1E34a94560f5497E49CF');
+let proof = merkleTree.getHexProof(leaf);
+let leaffake = keccak256('0x7d566a978b786175B70F1E34a94560f5497E49XX');
+proof = merkleTree.getHexProof(leaffake);
+```
+![image](https://user-images.githubusercontent.com/24216536/197184452-e85b9b0a-d92b-4863-acc0-f0dc4a21bb0e.png).  
+   
+也可以在js調用verify來驗證是偶為tree中的地址~.  
+```Javascript
+ const claimingAddress = leafNodes[0];
+ const hexProof = merkleTree.getHexProof(claimingAddress);
+ console.log(merkleTree.verify(hexProof, claimingAddress, rootHash))
+```
 JS的部分就到這邊告一段落了   
 
+[`WhiteList-MerkleTree/MerkleTreeProof.sol`](MerkleTreeProof.sol).  
+
+程式的內容很單純, 就是帶入js中產出的rootHash, 並提供function傳入merkleProof來進行驗證白單。  
+```Solidity
+contract merkleProof{
+
+    bytes32 public merkleRoot = 0x64115c82fbea542b73baf6c4f009f748bc5238cc3105e58e72d920703dd5e0ae;
+
+    mapping(address => bool ) public whitelist ;
+
+    function whitelistMint(bytes32[] calldata _merkleProof)public {
+        require(!whitelist[msg.sender], "Address has already claimed");
+
+        bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+        
+        require(MerkleProof.verify(_merkleProof, merkleRoot, leaf), "Invalid proof.");
+        
+        whitelist[msg.sender] = true;
+    }
+}
+```
+部署於[EtherScan](https://goerli.etherscan.io/address/0x107978c61d59830d0bf90ea011ce5b918cbd8b62).  
+<img width="396" alt="image" src="https://user-images.githubusercontent.com/24216536/197229274-614c4e02-0695-403c-8663-a0db065abc48.png">  
+其中whitelistMint需傳入的_merkleProof即是JS 中 紀錄的 hexProof變數.  
+
+若為白名單中的地址就可以在成功後於whitelist中輸入address查詢, 並會回傳true!  
+<img width="282" alt="image" src="https://user-images.githubusercontent.com/24216536/197230618-cbac3b9c-fe97-418a-8c50-a10c798e4331.png">.  
+
+來試試看不在白單內的地址,被狠狠地拒絕了   
+![image](https://user-images.githubusercontent.com/24216536/197231277-a5ef606b-1d6f-47bf-90dd-bb095aed7ab9.png).  
+<img width="507" alt="image" src="https://user-images.githubusercontent.com/24216536/197231155-b705fc31-c6d0-463d-87ca-f0af37481117.png">   
+
+那merkle tree實作就到這邊~~~
 
 
 
